@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 
 .idea/*
+fluidsynth-2.2.0-win10-x64/
