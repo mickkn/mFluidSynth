@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+	<title>mSynth</title>
+
+	<link rel="icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+	<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+	<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+	<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+	<!--<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">-->
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">-->
+	<script src='https://kit.fontawesome.com/a076d05399.js'></script>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/w3.css') }}">
+
+	<style>
+
+		.mySlides {display: none}
+		a {
+			text-decoration: none;
+		}
+
+		body{
+			background: url(/static/pattern.svg) repeat top left;
+		}
+
+	</style>
+	<body>
+
+		<!-- Navbar -->
+		<div class="w3-top">
+			<div class="w3-bar w3-black w3-card">
+				<a class="w3-bar-item w3-button w3-padding-large w3-hide-medium w3-hide-large w3-right" href="javascript:void(0)" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
+				<a href="{{ url_for('main.index') }}" 		class="w3-bar-item w3-button w3-padding-large">HOME</a>
+				<a href="{{ url_for('main.index') }}" 			class="w3-bar-item w3-button w3-padding-large w3-hide-small">FLUIDSYNTH</a>
+
+				<div class="w3-dropdown-hover w3-hide-small">
+					<button class="w3-padding-large w3-button" title="More">MORE <i class="fa fa-caret-down"></i></button>     
+					<div class="w3-dropdown-content w3-bar-block w3-card-4" style="min-width:0;">
+						<a href="{{ url_for('main.index') }}" 			class="w3-bar-item w3-button">Test</a>
+					</div>
+				</div>
+				<a href="javascript:void(0)" class="w3-padding-large w3-hover-red w3-hide-small w3-right"><i class="fa fa-search"></i></a>
+			</div>
+		</div>
+
+		<!-- Navbar on small screens (remove the onclick attribute if you want the navbar to always show on top of the content when clicking on the links) -->
+		<div id="navDemo" class="w3-bar-block w3-black w3-hide w3-hide-large w3-hide-medium w3-top" style="margin-top:46px">
+			<a href="{{ url_for('main.index') }}" class="w3-bar-item w3-button w3-padding-large" onclick="myFunction()">CV</a>
+			<!-- MAX LIMIT UNTIL SCROLL IS ENABLED -->
+		</div>
+
+		<!-- Page content -->
+		{% block content %}{% endblock %}
+
+		<!-- Footer -->
+		<footer class="w3-container w3-padding-64 w3-center w3-opacity w3-light-grey w3-xlarge">
+			<a href="https://www.facebook.com/mickkn" target="_blank" title="Facebook" <i class="fab fa-facebook w3-hover-opacity"></i></a>
+			<a href="https://www.instagram.com/mickkn/" target="_blank" title="Instagram" <i class="fab fa-instagram w3-hover-opacity"></i></a>
+			<a href="https://github.com/mickkn" target="_blank" title="Github" <i class="fab fa-github w3-hover-opacity"></i></a>
+			<a href="https://www.linkedin.com/in/mickkn/" target="_blank" title="LinkedIn" <i class="fab fa-linkedin w3-hover-opacity"></i></a>
+			<a href="https://www.flickr.com/photos/mickkn" target="_blank" title="Flickr" <i class="fab fa-flickr w3-hover-opacity"></i></a>
+			<a href="https://www.youtube.com/user/zflmick/" target="_blank" title="Youtube" <i class="fab fa-youtube w3-hover-opacity"></i></a>
+			<a href="https://discord.gg/MG42UXh" target="_blank" title="Discord" <i class="fab fa-discord w3-hover-opacity"></i></a>
+			<p class="w3-medium">Powered by me</a></p>
+		</footer>
+
+		<script>
+
+		// Used to toggle the menu on small screens when clicking on the menu button
+		function myFunction() {
+		  var x = document.getElementById("navDemo");
+		  if (x.className.indexOf("w3-show") == -1) {
+			x.className += " w3-show";
+		  } 
+		  else { 
+			x.className = x.className.replace(" w3-show", "");
+		  }
+		}
+
+		</script>
+
+	</body>
+</html>

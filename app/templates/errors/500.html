@@ -1,0 +1,13 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+
+<div class="w3-content" style="max-width:2000px;margin-top:46px">
+	<div class="w3-container w3-content w3-left-align w3-padding-64" style="max-width:800px" id="home">
+		<h2 class="w3-wide">An unexpected error has occurred</h2>
+		<p class="w3-opacity"><i>The administrator has been notified. Sorry for the inconvenience!</i></p>
+		 <p><a class="w3-hover-opacity w3-text-blue" href="{{ url_for('main.index') }}">Back</a></p>
+	</div>
+</div>
+
+{% endblock %}

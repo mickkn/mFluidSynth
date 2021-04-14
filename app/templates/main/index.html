@@ -1,0 +1,21 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+
+<div class="w3-content" style="max-width:2000px;margin-top:46px">
+	<div class="w3-container w3-content w3-center w3-padding-64" style="max-width:800px" id="home">
+		{% with messages = get_flashed_messages() %}
+			{% if messages %}
+				<p>
+					{% for message in messages %}
+						{{ message }}
+					{% endfor %}
+				</p>
+			{% endif %}
+		{% endwith %}
+		<h2 class="w3-wide">FLUIDSYNTH</h2>
+		<p class="w3-opacity"><i>Soundfont chooser for your MIDI keyboard</i></p>
+	</div>
+</div>
+
+{% endblock %}
