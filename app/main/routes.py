@@ -14,13 +14,27 @@ def index():
 @bp.route('/fluidsynth/', methods=['GET', 'POST'])
 def fluidsynth():
 
-	fs_exe = os.path.join(current_app.config["FS_WIN_FOLDER"], "fluidsynth.exe")
+	"""Page with list of sound fonts"""
 
-	fluidsynth_obj = mfluidsynth.Fluidsynth(path=fs_exe)
+	fs_temp = mfluidsynth.Fluidsynth(path=current_app.config["FS_WIN_EXE"])
 
-	fluidsynth_obj.start_process('"C:\\Users\\mk\\Desktop\\soundfonts\\Essential Keys-SF-v1.3.sf2"')
+	sound_fonts = fs_temp.get_fonts(current_app.config["SF_FOLDER"])
 
-	return render_template('main/fluidsynth.html')
+	return render_template('main/fluidsynth.html', soundfonts=sound_fonts)
+
+
+@bp.route('/fluidsynth/soundfont/<sf>', methods=['GET', 'POST'])
+def soundfont(sf):
+
+	"""Load soundfont and display sound banks"""
+
+	fs = mfluidsynth.Fluidsynth(path=current_app.config["FS_WIN_EXE"])
+
+	fs.get_banks()
+
+	print("TEST")
+
+	return render_template('main/soundfont.html')
 
 
 @bp.route('/favicon.ico')

@@ -9,21 +9,6 @@
 
 		<hr style="border: 0.5px solid grey;">
 
-		{% for soundfont in soundfonts %}
-
-				<div class="w3-row">
-					<div class="w3-full">
-						<h4 class="w3-text-grey w3-wide">
-							<a class="w3-ripple" href="{{ url_for('main.soundfont', sf=soundfont[0]) }}">
-								{{ soundfont[1] }}
-							</a>
-						</h4>
-					</div>
-				</div>
-
-				<hr style="border: 0.5px solid grey;">
-
-			{% endfor %}
 
 	</div>
 </div>
