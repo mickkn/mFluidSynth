@@ -52,6 +52,8 @@ class Fluidsynth:
         self.arguments_dict = FLUIDSYNTH_DEFAULT_ARGS
         self.arguments = ""
 
+        self.instruments = None
+
         for name, value in list(self.arguments_dict.items()):
             self.arguments = self.arguments + f" {name}{value}"
 
@@ -77,15 +79,42 @@ class Fluidsynth:
 
     def get_instruments(self):
 
-        print("get_instruments")
-
         tn = telnetlib.Telnet("localhost", 9800)
         tn.read_until('> '.encode('ascii'))
         tn.write("inst 1\r\n".encode('ascii'))
         instruments = tn.read_until('> '.encode('ascii')).decode('ascii')
 
-        instruments.split("\n")
-        print(instruments)
+        self.instruments = instruments.split("\n")
+        self.instruments.remove('> ')
+        #print(self.instruments)
+
+        tn.close()
+
+        return self.instruments
+
+    @staticmethod
+    def set_instrument(instrument: str = ""):
+
+        cmd_list = []
+
+        ins = int(instrument[4]+instrument[5]+instrument[6])
+
+        # Just add the instrument to all channels
+        for i in range(16):
+
+            cmd_list.append(f"select {i} 1 0 {ins}")
+
+        tn = telnetlib.Telnet("localhost", 9800)
+        tn.read_until('> '.encode('ascii'))
+
+        for item in cmd_list:
+            item = item + "\n"
+            tn.write(item.encode('ascii'))
+            #print(item)
+
+        #print(tn.read_until('> '.encode('ascii')).decode('ascii'))
+
+        tn.close()
 
     @staticmethod
     def kill_command_windows(pid):
@@ -95,7 +124,3 @@ class Fluidsynth:
         command = ['TASKKILL', '/F', '/T', '/PID', str(pid)]
         proc = subprocess.Popen(command, stdin=dev_null, stdout=sys.stdout, stderr=sys.stderr)
         proc.communicate()
-
-    def __del__(self):
-
-        print("Destructor called")
