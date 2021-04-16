@@ -16,9 +16,7 @@ def fluidsynth():
 
 	"""Page with list of sound fonts"""
 
-	fs_temp = mfluidsynth.Fluidsynth(path=current_app.config["FS_WIN_EXE"])
-
-	sound_fonts = fs_temp.get_fonts(current_app.config["SF_FOLDER"])
+	sound_fonts = mfluidsynth.Fluidsynth.get_fonts(current_app.config["SF_FOLDER"])
 
 	return render_template('main/fluidsynth.html', soundfonts=sound_fonts)
 
@@ -28,11 +26,9 @@ def soundfont(sf):
 
 	"""Load soundfont and display sound banks"""
 
-	fs = mfluidsynth.Fluidsynth(path=current_app.config["FS_WIN_EXE"])
+	fs = mfluidsynth.Fluidsynth(path=current_app.config["FS_WIN_EXE"], soundfont=sf)
 
-	fs.get_banks()
-
-	print("TEST")
+	fs.get_instruments()
 
 	return render_template('main/soundfont.html')
 
