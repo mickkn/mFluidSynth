@@ -2,6 +2,7 @@ import subprocess
 import os
 import telnetlib
 import sys
+import time
 
 FLUIDSYNTH_DEFAULT_ARGS = {
 
@@ -13,23 +14,23 @@ FLUIDSYNTH_DEFAULT_ARGS = {
     # "-E": "",   # Audio file endian for fast rendering or aufile driver ("help" for list)
     # "-f": "",   # Load command configuration file (shell commands)
     # "-F": "",   # Render MIDI file to raw audio data and store in [file]
-    "-g": "2",  # Set the master gain [0 < gain < 10, default = 0.2]
+    "-g": "1",  # Set the master gain [0 < gain < 10, default = 0.2]
     # "-G": "",   # Defines the number of LADSPA audio nodes
     # "-h": "",   # Print out this help summary
-    # "-i": " ",   # Don't read commands from the shell [default = yes]
+    #"-i": "",   # Don't read commands from the shell [default = yes]
     # "-j": "",   # Attempt to connect the jack outputs to the physical ports
     # "-K": "",   # The number of midi channels [default = 16]
     # "-L": "",   # The number of stereo audio channels [default = 1]
     # "-m": "alsa_seq",   # The name of the midi driver to use. Valid values: winmidi
     # "-n": "",   # Don't create a midi driver to read MIDI input events [default = yes]
-    "-o": "shell.port=9800",  # Define a setting, -o name=value ("-o help" to dump current values)
+    #"-o": "shell.port=9800",  # Define a setting, -o name=value ("-o help" to dump current values)
     # "-O": "",   # Audio file format for fast rendering or aufile driver ("help" for list)
     "-p": " fluid",  # Set MIDI port name (alsa_seq, coremidi drivers)
-    # "-q": "",   # Do not print welcome message or other informational output
+    #"-q": "",   # Do not print welcome message or other informational output
     # (Windows only: also suppress all log messages lower than PANIC
     "-r": "48000",  # Set the sample rate
     "-R": "0",  # Turn the reverb on or off [0|1|yes|no, default = on]
-    "-s": "",  # Start FluidSynth as a server process
+    #"-s": "",  # Start FluidSynth as a server process
     # "-T": "",   # Audio file type for fast rendering or aufile driver ("help" for list)
     # "-v": "",   # Print out verbose messages about midi events (synth.verbose=1) as well as other debug messages
     # "-V": "",   # Show version of program
@@ -63,7 +64,16 @@ class Fluidsynth:
             print("Killing old process")
             self.kill_command_windows(fluidsynth.pid)
 
-        fluidsynth = subprocess.Popen(args=self.arguments, executable=self.path)
+        print("mdebug:    Starting subprocess")
+        print(f"mdebug:    Soundfont: {soundfont}")
+        print(f"mdebug:    Args: {self.arguments}")
+
+        fluidsynth = subprocess.Popen(args=self.arguments,
+                                      executable=self.path,
+                                      universal_newlines=True,
+                                      stdin=subprocess.PIPE,
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.STDOUT)
 
     @staticmethod
     def get_fonts(directory):
@@ -77,8 +87,21 @@ class Fluidsynth:
 
         return sound_fonts
 
+    def _put(self, command: str) -> None:
+        if not fluidsynth.stdin:
+            raise BrokenPipeError()
+        fluidsynth.stdin.write(f"{command}\n")
+        fluidsynth.stdin.flush()
+
+    def _read_line(self) -> str:
+        if not fluidsynth.stdout:
+            raise BrokenPipeError()
+        return fluidsynth.stdout.readline().strip()
+
     def get_instruments(self):
 
+        """
+        # Get instruments with Telnet and Fluidsynth in server mode.
         tn = telnetlib.Telnet("localhost", 9800)
         tn.read_until('> '.encode('ascii'))
         tn.write("inst 1\r\n".encode('ascii'))
@@ -90,13 +113,35 @@ class Fluidsynth:
 
         tn.close()
 
+        """
+
+        # Read all instruments from Soundfont
+        self._put("inst 1")
+        self._put("inst 1")
+
+        # Reset instrument list
+        self.instruments = []
+
+        breaker = 0
+        fluidsynth.stdout.flush()
+        for line in fluidsynth.stdout:
+            print(line)
+            if "> " in line:
+                breaker += 1
+            if breaker >= 2:
+                break
+            if "000-" in line and "Copyright" not in line:
+                self.instruments.append(line.replace("> ", ""))
+
+        print(self.instruments)
+
         return self.instruments
 
-    @staticmethod
-    def set_instrument(instrument: str = ""):
+    def set_instrument(self, instrument: str = ""):
 
         cmd_list = []
 
+        print(f"instrument {instrument}")
         ins = int(instrument[4]+instrument[5]+instrument[6])
 
         # Just add the instrument to all channels
@@ -104,17 +149,18 @@ class Fluidsynth:
 
             cmd_list.append(f"select {i} 1 0 {ins}")
 
-        tn = telnetlib.Telnet("localhost", 9800)
-        tn.read_until('> '.encode('ascii'))
+        #tn = telnetlib.Telnet("localhost", 9800)
+        #tn.read_until('> '.encode('ascii'))
 
         for item in cmd_list:
             item = item + "\n"
-            tn.write(item.encode('ascii'))
-            #print(item)
+            self._put(item)
+            #tn.write(item.encode('ascii'))
+            print(item)
 
         #print(tn.read_until('> '.encode('ascii')).decode('ascii'))
 
-        tn.close()
+        #tn.close()
 
     @staticmethod
     def kill_command_windows(pid):

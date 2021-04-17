@@ -41,9 +41,10 @@ def soundfont(sf):
 @bp.route('/fluidsynth/instrument/<ins>', methods=['GET', 'POST'])
 def instrument(ins):
 
-	print(f"Changing instrument to: {ins}")
+	print(f"Changing instrument to: {repr(ins)} {type(ins)}")
+	print(ins[0:7])
 
-	mfluidsynth.Fluidsynth.set_instrument(ins)
+	mfluidsynth.Fluidsynth.set_instrument(ins[0:7])
 
 	return render_template('main/instruments.html', instruments=inst)
 
