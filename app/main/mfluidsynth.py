@@ -32,7 +32,7 @@ FLUIDSYNTH_DEFAULT_ARGS = {
     "-R": "0",  # Turn the reverb on or off [0|1|yes|no, default = on]
     #"-s": "",  # Start FluidSynth as a server process
     # "-T": "",   # Audio file type for fast rendering or aufile driver ("help" for list)
-    # "-v": "",   # Print out verbose messages about midi events (synth.verbose=1) as well as other debug messages
+    #"-v": "",   # Print out verbose messages about midi events (synth.verbose=1) as well as other debug messages
     # "-V": "",   # Show version of program
     # "-z": "",   # Size of each audio buffer
 
@@ -87,45 +87,28 @@ class Fluidsynth:
 
         return sound_fonts
 
-    def _put(self, command: str) -> None:
+    @staticmethod
+    def _put(command: str) -> None:
         if not fluidsynth.stdin:
             raise BrokenPipeError()
         fluidsynth.stdin.write(f"{command}\n")
         fluidsynth.stdin.flush()
 
-    def _read_line(self) -> str:
-        if not fluidsynth.stdout:
-            raise BrokenPipeError()
-        return fluidsynth.stdout.readline().strip()
-
     def get_instruments(self):
 
-        """
-        # Get instruments with Telnet and Fluidsynth in server mode.
-        tn = telnetlib.Telnet("localhost", 9800)
-        tn.read_until('> '.encode('ascii'))
-        tn.write("inst 1\r\n".encode('ascii'))
-        instruments = tn.read_until('> '.encode('ascii')).decode('ascii')
+        """ Get a list of instruments """
 
-        self.instruments = instruments.split("\n")
-        self.instruments.remove('> ')
-        #print(self.instruments)
-
-        tn.close()
-
-        """
-
-        # Read all instruments from Soundfont
+        # Read all instruments from Soundfont (2 times to get a '> ' end(start) operator)
         self._put("inst 1")
         self._put("inst 1")
 
         # Reset instrument list
         self.instruments = []
 
+        # Be able to break the freaking stdout.
         breaker = 0
         fluidsynth.stdout.flush()
         for line in fluidsynth.stdout:
-            print(line)
             if "> " in line:
                 breaker += 1
             if breaker >= 2:
@@ -133,34 +116,26 @@ class Fluidsynth:
             if "000-" in line and "Copyright" not in line:
                 self.instruments.append(line.replace("> ", ""))
 
-        print(self.instruments)
-
         return self.instruments
 
-    def set_instrument(self, instrument: str = ""):
+    @staticmethod
+    def set_instrument(instrument: str = ""):
+
+        """ Set instrument of the soundfont loaded """
 
         cmd_list = []
 
         print(f"instrument {instrument}")
-        ins = int(instrument[4]+instrument[5]+instrument[6])
+        ins = int(instrument[4:7])
 
         # Just add the instrument to all channels
         for i in range(16):
-
-            cmd_list.append(f"select {i} 1 0 {ins}")
-
-        #tn = telnetlib.Telnet("localhost", 9800)
-        #tn.read_until('> '.encode('ascii'))
+            if i != 9:
+                cmd_list.append(f"select {i} 1 0 {ins}")
 
         for item in cmd_list:
-            item = item + "\n"
-            self._put(item)
-            #tn.write(item.encode('ascii'))
-            print(item)
-
-        #print(tn.read_until('> '.encode('ascii')).decode('ascii'))
-
-        #tn.close()
+            fluidsynth.stdin.write(f"{item}\n")
+            fluidsynth.stdin.flush()
 
     @staticmethod
     def kill_command_windows(pid):
