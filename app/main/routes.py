@@ -1,5 +1,4 @@
 import os
-import subprocess
 from flask import render_template, send_from_directory
 from flask import current_app
 from app.main import bp, mfluidsynth
@@ -31,7 +30,7 @@ def soundfont(sf):
 
 	global inst
 
-	fs = mfluidsynth.Fluidsynth(path=current_app.config["FS_WIN_EXE"], soundfont=sf)
+	fs = mfluidsynth.Fluidsynth(path=current_app.config["FS_EXE"], soundfont=sf)
 
 	inst = fs.get_instruments()
 

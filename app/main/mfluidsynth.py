@@ -1,8 +1,7 @@
 import subprocess
 import os
-import telnetlib
+import platform
 import sys
-import time
 
 FLUIDSYNTH_DEFAULT_ARGS = {
 
@@ -62,7 +61,13 @@ class Fluidsynth:
 
         if fluidsynth is not None:
             print("Killing old process")
-            self.kill_command_windows(fluidsynth.pid)
+            if platform.system() == 'Windows':
+                self.kill_command_windows(fluidsynth.pid)
+            elif platform.system() == 'Linux':
+                fluidsynth.kill()
+            else:
+                print("Unknown OS")
+                sys.exit()
 
         print("mdebug:    Starting subprocess")
         print(f"mdebug:    Soundfont: {soundfont}")

@@ -9,9 +9,6 @@ class Config(object):
 
     STATIC_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'app', 'static')
 
-    FS_WIN_EXE = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                              'fluidsynth-2.2.0-win10-x64', 'bin', 'fluidsynth.exe')
-    FS_LINUX_EXE = "fluidsynth"
+    FS_EXE = os.environ.get("FS_EXE")
 
-    SF_FOLDER = r"E:\[MIDI]\Soundfonts"
-    #os.path.join(os.path.abspath(os.path.dirname(__file__)), 'fluidsynth-2.2.0-win10-x64', 'bin')
+    SF_FOLDER = os.environ.get("SF_FOLDER")
