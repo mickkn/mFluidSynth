@@ -12,3 +12,5 @@ class Config(object):
     FS_EXE = os.environ.get("FS_EXE")
 
     SF_FOLDER = os.environ.get("SF_FOLDER")
+
+    LINUX_ACONN_MIDI = os.environ.get("LINUX_ACONN_MIDI")
