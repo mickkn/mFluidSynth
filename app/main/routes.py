@@ -28,9 +28,14 @@ def soundfont(sf):
 
 	"""Load soundfont and display sound banks"""
 
+	print(f"Soundfont chosen: {sf}")
+
 	global inst
 
-	fs = mfluidsynth.Fluidsynth(path=current_app.config["FS_EXE"], soundfont=sf)
+	fs = mfluidsynth.Fluidsynth(path=current_app.config["FS_EXE"], 
+								midi=current_app.config["LINUX_ACONN_MIDI"], 
+								soundfont=os.path.join(current_app.config["SF_FOLDER"], 
+								sf))
 
 	inst = fs.get_instruments()
 
@@ -40,8 +45,8 @@ def soundfont(sf):
 @bp.route('/fluidsynth/instrument/<ins>', methods=['GET', 'POST'])
 def instrument(ins):
 
-	print(f"Changing instrument to: {repr(ins)} {type(ins)}")
-	print(ins[0:7])
+	print(f"Changing instrument to: {repr(ins)}")
+	#print(ins[0:7])
 
 	mfluidsynth.Fluidsynth.set_instrument(ins[0:7])
 

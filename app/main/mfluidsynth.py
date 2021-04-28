@@ -1,7 +1,6 @@
 import subprocess
 import os
 import platform
-import sys
 
 FLUIDSYNTH_DEFAULT_ARGS = {
 
@@ -24,7 +23,7 @@ FLUIDSYNTH_DEFAULT_ARGS = {
     # "-n": "",   # Don't create a midi driver to read MIDI input events [default = yes]
     #"-o": "shell.port=9800",  # Define a setting, -o name=value ("-o help" to dump current values)
     # "-O": "",   # Audio file format for fast rendering or aufile driver ("help" for list)
-    "-p": " fluid",  # Set MIDI port name (alsa_seq, coremidi drivers)
+    "-p": "fluid",  # Set MIDI port name (alsa_seq, coremidi drivers)
     #"-q": "",   # Do not print welcome message or other informational output
     # (Windows only: also suppress all log messages lower than PANIC
     "-r": "48000",  # Set the sample rate
@@ -35,6 +34,10 @@ FLUIDSYNTH_DEFAULT_ARGS = {
     # "-V": "",   # Show version of program
     # "-z": "",   # Size of each audio buffer
 
+    # fluidweb cmd line: fluidsynth -si -p "fluid" -C0 -R0 -r48000 -d -f ./config.txt -a alsa -m alsa_seq &
+
+    # fluidsynth cmd line: fluidsynth -p "fluid" -C0 -R0 -r48000 -d -f -a alsa -m alsa_seq "/home/pi/soundfonts/Full Grand.sf2" &
+    # aconnect 'Keystation 49 MK3':0 'fluid':0
 }
 
 global fluidsynth
@@ -43,35 +46,46 @@ fluidsynth = None
 
 class Fluidsynth:
 
-    def __init__(self, path: str = "fluidsynth", soundfont: str = "", arguments: dict = None) -> None:
+    def __init__(self, path: str = "fluidsynth", midi: str = "Keystation 49 MK3", soundfont: str = "", arguments: dict = None) -> None:
 
         global fluidsynth
 
         self.path = path
 
+        self.midi_device = midi
+
         self.arguments_dict = FLUIDSYNTH_DEFAULT_ARGS
-        self.arguments = ""
+        self.arguments = []
 
         self.instruments = None
 
         for name, value in list(self.arguments_dict.items()):
-            self.arguments = self.arguments + f" {name}{value}"
+            #self.arguments = self.arguments + f" {name}{value}"
+            self.arguments.append(f"{name}{value}")
 
-        self.arguments = self.arguments + " " + '"' + soundfont + '"'
+        if platform.system() == 'Linux':
+                self.arguments.append("-aalsa")
+                self.arguments.append("-malsa_seq")
+
+        self.arguments.append(soundfont)
 
         if fluidsynth is not None:
             print("Killing old process")
             if platform.system() == 'Windows':
+                print("OS: Windows")
                 self.kill_command_windows(fluidsynth.pid)
             elif platform.system() == 'Linux':
+                print("OS: Linux")
                 fluidsynth.kill()
+                #if midi_device is not None:
+                #    midi_device.kill()
             else:
                 print("Unknown OS")
                 sys.exit()
 
-        print("mdebug:    Starting subprocess")
-        print(f"mdebug:    Soundfont: {soundfont}")
-        print(f"mdebug:    Args: {self.arguments}")
+        print( "debug:    Starting subprocess")
+        print(f"debug:    Soundfont: {soundfont}")
+        print(f"debug:    Args: {self.arguments}")
 
         fluidsynth = subprocess.Popen(args=self.arguments,
                                       executable=self.path,
@@ -79,6 +93,36 @@ class Fluidsynth:
                                       stdin=subprocess.PIPE,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.STDOUT)
+
+        if platform.system() == 'Linux':
+
+            # Check for a running Fluidsynth process
+            connection = subprocess.Popen(["aconnect", "-o"], stdout=subprocess.PIPE)
+            fluid_running = False
+
+            while not fluid_running:
+                for line in connection.stdout:
+                    if 'fluid' in line.decode('ascii'):
+                        fluid_running = True
+                connection = subprocess.Popen(["aconnect", "-o"], stdout=subprocess.PIPE)
+
+            print("Fluidsynth is running...")
+            print("Trying to link MIDI keyboard and Fluidsynth")
+
+            # Be nice and report the noob, that his keyboard is not connected or the name is wrong
+            connection = subprocess.Popen(["aconnect", "-i"], stdout=subprocess.PIPE)
+            
+            stdout_lines = ""
+            for line in connection.stdout:
+                stdout_lines = stdout_lines + line.decode('ascii').strip()
+
+            if f"'{self.midi_device}'" in stdout_lines:
+                print(f"Found MIDI Controller: {self.midi_device}")
+            else:
+                print(f"Didn't found your MIDI Controller: {self.midi_device}")
+                print("Check USB connection and name from $ aconnect -l")
+
+            subprocess.Popen(["aconnect", f'{self.midi_device}:0', 'fluid:0'])
 
     @staticmethod
     def get_fonts(directory):
@@ -88,7 +132,7 @@ class Fluidsynth:
         for root, dirs, files in os.walk(directory, topdown=False):
             for filename in files:
                 if filename.endswith(".sf2"):
-                    sound_fonts.append([os.path.join(root, filename), filename])
+                    sound_fonts.append(filename)
 
         return sound_fonts
 
@@ -114,6 +158,7 @@ class Fluidsynth:
         breaker = 0
         fluidsynth.stdout.flush()
         for line in fluidsynth.stdout:
+            #print(line)
             if "> " in line:
                 breaker += 1
             if breaker >= 2:
